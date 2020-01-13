@@ -32,5 +32,25 @@ namespace TweetBook.Services
             var post = _posts.FirstOrDefault(x => x.Id == postId);
             return post;
         }
+
+        public bool UpdatePost(Post post)
+        {
+            var dbPost = GetPostById(post.Id);
+            if (dbPost == null)
+                return false;
+
+            dbPost.Name = post.Name;
+            return true;
+        }
+
+        public bool DeletePost(Guid postId)
+        {
+            var dbPost = GetPostById(postId);
+            if (dbPost == null)
+                return false;
+
+            _posts.Remove(dbPost);
+            return true;
+        }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using TweetBook.Contracts.V1;
 using TweetBook.Contracts.V1.Requests;
@@ -33,6 +31,34 @@ namespace TweetBook.Controllers.V1
             if (post != null)
             {
                 return Ok(post);
+            }
+            
+            return NotFound();
+        }
+        
+        [HttpPut(ApiRoutes.Posts.Update)]
+        public IActionResult Put([FromRoute] Guid postId, [FromBody] UpdatePostRequest updatePostRequest)
+        {
+            var post = new Post
+            {
+                Id = postId,
+                Name = updatePostRequest.Name
+            };
+            var result = _postService.UpdatePost(post);
+            if (result)
+            {
+                return Ok(post);
+            }
+            return NotFound();
+        }
+        
+        [HttpDelete(ApiRoutes.Posts.Update)]
+        public IActionResult Delete([FromRoute] Guid postId)
+        {
+            var result = _postService.DeletePost(postId);
+            if (result)
+            {
+                return NoContent();
             }
             
             return NotFound();
