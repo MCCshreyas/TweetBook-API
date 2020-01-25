@@ -1,55 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using TweetBook.Data;
 using TweetBook.Domain;
 
 namespace TweetBook.Services
 {
     public class PostService : IPostService
     {
-        private readonly List<Post> _posts;
+        private readonly DataContext _dataContext;
 
-        public PostService()
+        public PostService(DataContext dataContext)
         {
-            _posts = new List<Post>();
-            for (var i = 0; i < 5; i++)
-            {
-                _posts.Add(new Post
-                {
-                    Id = Guid.NewGuid(),
-                    Name = $"Post name {i}"
-                });
-            }
+            _dataContext = dataContext;
         }
         
-        public List<Post> GetPosts()
+        public async Task<List<Post>> GetPostsAsync()
         {
-            return _posts;
+            return await _dataContext.Posts.ToListAsync();
         }
 
-        public Post GetPostById(Guid postId)
+        public async Task<Post> CreatePostAsync(Post post)
         {
-            var post = _posts.FirstOrDefault(x => x.Id == postId);
+            _dataContext.Posts.Add(post);
+            await _dataContext.SaveChangesAsync();
             return post;
         }
 
-        public bool UpdatePost(Post post)
+        public async Task<Post> GetPostByIdAsync(Guid postId)
         {
-            var dbPost = GetPostById(post.Id);
+            var post = await _dataContext.Posts.FirstOrDefaultAsync(x => x.Id == postId);
+            return post;
+        }
+
+        public async Task<bool> UpdatePostAsync(Post post)
+        {
+            var dbPost = await GetPostByIdAsync(post.Id);
             if (dbPost == null)
                 return false;
 
-            dbPost.Name = post.Name;
+            var newPost = new Post
+            {
+                Id = post.Id,
+                Name = post.Name
+            };
+            
+            _dataContext.Entry(post).State = EntityState.Modified;
+            await _dataContext.SaveChangesAsync();
             return true;
         }
 
-        public bool DeletePost(Guid postId)
+        public async Task<bool> DeletePostAsync(Guid postId)
         {
-            var dbPost = GetPostById(postId);
+            var dbPost = await GetPostByIdAsync(postId);
             if (dbPost == null)
                 return false;
 
-            _posts.Remove(dbPost);
+            _dataContext.Posts.Remove(dbPost);
+            await _dataContext.SaveChangesAsync();
             return true;
         }
     }
